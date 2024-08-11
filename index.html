@@ -100,6 +100,11 @@
             color: #fff;
             font-size: 24px;
         }
+
+        /* Styles for Flappy Bird game */
+        canvas {
+            background-color: #70c5ce;
+        }
     </style>
 </head>
 <body>
@@ -129,6 +134,7 @@
 
     <div class="gray-page" id="gray-page">
         HELLO WORLD!
+        <canvas id="flappyBird" width="320" height="480"></canvas>
         <button class="logout-button" id="logout-button" onclick="logout()">Đăng Xuất</button>
     </div>
 
@@ -159,6 +165,7 @@
             document.querySelector('.container').style.display = 'none';
             document.getElementById('gray-page').style.display = 'flex';
             document.getElementById('logout-button').style.display = 'block';
+            startFlappyBird(); // Bắt đầu trò chơi Flappy Bird
         }
 
         function register(event) {
@@ -217,6 +224,116 @@
         function logout() {
             localStorage.setItem('isLoggedIn', 'false');
             showLoginForm();
+        }
+
+        // Flappy Bird game code
+        function startFlappyBird() {
+            const canvas = document.getElementById('flappyBird');
+            const ctx = canvas.getContext('2d');
+
+            // Tạo các thành phần của trò chơi
+            let bird = {
+                x: 50,
+                y: 150,
+                width: 20,
+                height: 20,
+                gravity: 1.5,
+                lift: -20,
+                velocity: 0,
+                show() {
+                    ctx.fillStyle = "#FF0";
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                },
+                update() {
+                    this.velocity += this.gravity;
+                    this.y += this.velocity;
+                    if (this.y + this.height > canvas.height) {
+                        this.y = canvas.height - this.height;
+                        this.velocity = 0;
+                    }
+                },
+                up() {
+                    this.velocity += this.lift;
+                }
+            };
+
+            let pipes = [];
+            let frameCount = 0;
+            let score = 0;
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                bird.update();
+                bird.show();
+
+                if (frameCount % 90 === 0) {
+                    let pipeHeight = Math.floor(Math.random() * 200) + 50;
+                    pipes.push({
+                        x: canvas.width,
+                        y: 0,
+                        width: 30,
+                        height: pipeHeight,
+                        passed: false
+                    });
+                    pipes.push({
+                        x: canvas.width,
+                        y: pipeHeight + 100,
+                        width: 30,
+                        height: canvas.height - pipeHeight - 100,
+                        passed: false
+                    });
+                }
+
+                for (let i = pipes.length - 1; i >= 0; i--) {
+                    ctx.fillStyle = "#0F0";
+                    ctx.fillRect(pipes[i].x, pipes[i].y, pipes[i].width, pipes[i].height);
+
+                    pipes[i].x -= 2;
+
+                    if (!pipes[i].passed && pipes[i].x + pipes[i].width < bird.x) {
+                        score++;
+                        pipes[i].passed = true;
+                    }
+
+                    if (pipes[i].x + pipes[i].width < 0) {
+                        pipes.splice(i, 1);
+                    }
+
+                    if (
+                        bird.x < pipes[i].x + pipes[i].width &&
+                        bird.x + bird.width > pipes[i].x &&
+                        bird.y < pipes[i].y + pipes[i].height &&
+                        bird.y + bird.height > pipes[i].y
+                    ) {
+                        resetGame();
+                    }
+                }
+
+                ctx.fillStyle = "#FFF";
+                ctx.font = "20px Arial";
+                ctx.fillText(`Score: ${score}`, 10, 20);
+
+                frameCount++;
+                requestAnimationFrame(draw);
+            }
+
+            function resetGame() {
+                bird.y = 150;
+                bird.velocity = 0;
+                pipes = [];
+                frameCount = 0;
+                score = 0;
+                draw(); // Bắt đầu lại trò chơi ngay khi đặt lại
+            }
+
+            document.addEventListener("keydown", function(event) {
+                if (event.key === " ") {
+                    bird.up();
+                }
+            });
+
+            draw();
         }
     </script>
 </body>
